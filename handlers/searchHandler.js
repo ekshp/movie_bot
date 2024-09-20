@@ -1,28 +1,64 @@
+const fs = require('fs');
+const path = require('path');
 const movieList = require('../db/movie-list.json');
-const config = require('./config');
+const config = require('../config');
 
-async function searchMovie(bot, msg) {
+async function searchMovieByName(bot, msg) {
     const chatId = msg.chat.id;
     const title = msg.text.trim();
-
     try {
-        const movie = movieList.find(movie => movie.name.toLowerCase() === title.toLowerCase());
-        
-        if (movie) {
-            // Если фильм найден, формирование ссылки на фильм
-            const link = `${baseUrl}${movie.id}`;
-            
-            // Отправка сообщения с ссылкой на фильм
-            await bot.telegram.sendMessage(chatId, `Фильм найден! Вот ваша ссылка: ${link}`);
+        const movies = movieList.filter(movie => {
+            const words = movie.name.toLowerCase().split(/\s+/); 
+            return words.includes(title.toLowerCase()); 
+        });
+        console.log(movies);
+        if (movies.length > 0) {
+            const links = movies.map(movie => `${movie.name}, ${movie.year} - ${config.baseUrl}${movie.id}`).join('\n');
+            await bot.telegram.sendMessage(chatId, `${links}`);
         } else {
-            // Если фильм не найден, отправка сообщения об этом
-            await bot.telegram.sendMessage(chatId, 'Извините, фильм не найден.');
+            await bot.telegram.sendMessage(chatId, 'Извините, фильм не найден, пропробуйте ввести ID с сайта Кинопоиск, так нам будет легче найти нужный фильм.');
+            bot.on('text', async (msg) => {
+                console.log('searchMovieById');
+                await searchMovieById(bot, msg);
+            });
         }
     } catch (error) {
-        // Обработка ошибок и отправка сообщения об ошибке
         console.error(error);
         await bot.telegram.sendMessage(chatId, 'Произошла ошибка при поиске фильма.');
+
+        const logMessage = `${new Date().toISOString()} - Error: ${error.message}\nStack: ${error.stack}\nChat ID: ${chatId}\nTitle: ${title}\n\n`;
+        fs.appendFile(path.join(__dirname, 'error.log'), logMessage, (err) => {
+            if (err) {
+                console.error('Ошибка при записи лога в файл:', err);
+            }
+        });
     }
 }
 
-module.exports = { searchMovie };
+async function searchMovieById(bot, msg) {
+    const chatId = msg.chat.id;
+    const id = msg.text.trim();
+    console.log(`Searching for movie by ID: ${id} from chat ID: ${chatId}`);
+    try {
+        const movie = movieList.find(movie => movie.id === id);
+        
+        if (movie) {
+            const link = `${config.baseUrl}${movie.id}`;
+            await bot.telegram.sendMessage(chatId, `Фильм найден! Вот ваша ссылка: ${link}`);
+        } else {
+            await bot.telegram.sendMessage(chatId, 'Извините, кажется это новый фильм и мы еще не успели добавить его в раздачу.');
+        }
+    } catch (error) {
+        console.error(error);
+        await bot.telegram.sendMessage(chatId, 'Произошла ошибка при поиске фильма.');
+
+        const logMessage = `${new Date().toISOString()} - Error: ${error.message}\nStack: ${error.stack}\nChat ID: ${chatId}\nID: ${id}\n\n`;
+        fs.appendFile(path.join(__dirname, 'error.log'), logMessage, (err) => {
+            if (err) {
+                console.error('Ошибка при записи лога в файл:', err);
+            }
+        });
+    }
+}
+
+module.exports = { searchMovieByName, searchMovieById };

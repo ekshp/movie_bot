@@ -1,7 +1,5 @@
-const { searchMovie, startCommand, helpCommand } = require('./searchHandler');
+const { searchMovieByName } = require('./searchHandler');
 
 module.exports = {
-    searchMovie,
-    startCommand,
-    helpCommand
+    searchMovieByName,
 };
