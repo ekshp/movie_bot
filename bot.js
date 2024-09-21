@@ -1,6 +1,6 @@
 const { Telegraf, Markup } = require('telegraf');
 const config = require('./config');
-const { searchMovieByName } = require('./handlers');
+const { searchMovieByName, searchMovieById } = require('./handlers');
 const { message } = require('telegraf/filters');
 
 const bot = new Telegraf(config.token);
@@ -11,8 +11,18 @@ bot.start((msg) => {
     ]).resize());
 });
 
-bot.on(message('text'), (msg) => {
-    searchMovieByName(bot, msg);
+bot.hears('Поиск по ID', (msg) => {
+    msg.reply('Введите ID фильма:');
+    bot.on(message('text'), (msg) => {
+        searchMovieById(bot, msg);
+    });
+});
+
+bot.hears('Поиск по названию', (msg) => {
+    msg.reply('Введите название фильма:');
+    bot.on(message('text'), (msg) => {
+        searchMovieByName(bot, msg);
+    });
 });
 
 bot.launch();
