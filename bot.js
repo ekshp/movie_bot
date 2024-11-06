@@ -1,9 +1,8 @@
-const { Telegraf, Markup } = require('telegraf');
-const config = require('./config');
-const { searchMovieByName, searchMovieById, searchMovieByGenre } = require('.');
-const { message } = require('telegraf/filters');
+import { Telegraf, Markup } from 'telegraf';
+import { token } from './config';
+import { searchMovieByName, searchMovieById, searchMovieByGenre } from '.';
 
-const bot = new Telegraf(config.token);
+const bot = new Telegraf(token);
 
 let currentState = 'mainMenu';
 

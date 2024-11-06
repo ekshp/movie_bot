@@ -1,6 +1,9 @@
-const { searchMovieByName, searchMovieById, searchMovieByGenre } = require('./handlers/searchHandler');
+import { searchMovieByName } from './handlers/nameSearcher';
+import { searchMovieById } from './handlers/idSearcher';
+import { searchMovieByGenre } from './handlers/randomSearcher';
 
-module.exports = {
+
+export default {
     searchMovieByName,
     searchMovieById,
     searchMovieByGenre
