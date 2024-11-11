@@ -6,4 +6,16 @@ import pluginJs from "@eslint/js";
 export default [
   {languageOptions: { globals: globals.browser }},
   pluginJs.configs.recommended,
+  { rules: {
+      "import/extensions": [
+        "error",
+        "ignorePackages",
+        {
+          "js": "never",
+          "json": "always"
+        }
+      ],
+      "import/no-unresolved": "off"
+    }
+  }
 ];

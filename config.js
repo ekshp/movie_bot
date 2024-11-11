@@ -1,6 +1,7 @@
-require('dotenv').config();
+import dotenv from 'dotenv';
+import process from 'node:process';
 
-module.exports = {
-    token: process.env.TELEGRAM_TOKEN,
-    baseUrl: process.env.BASE_URL
-};
+dotenv.config();
+
+export const token = process.env.TELEGRAM_TOKEN;
+export const baseUrl = process.env.BASE_URL;
