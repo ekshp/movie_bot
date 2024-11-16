@@ -5,7 +5,7 @@ export async function searchMovieById(bot, msg) {
   const chatId = msg.chat.id;
   const id = parseInt(msg.text.trim());  
   try {
-      const movie = movieList.find(movie => movie.id === id);
+      const movie = movieList.find(movie => movie.kinopoisk_id === id);
       if (movie) {
           const link = `${movie.name}, ${movie.year} - ${movie.iframe_url}`;
           await bot.telegram.sendMessage(chatId, `Фильм найден! Вот ваша ссылка: ${link}`);
