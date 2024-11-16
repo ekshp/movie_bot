@@ -1,14 +1,13 @@
-import movieList from '../db/movie-list.json';
-import { baseUrl } from '../config.js';
+import movieList from '../db/movie-list.json' assert { type: 'json' };
 
 
-async function searchMovieById(bot, msg) {
+export async function searchMovieById(bot, msg) {
   const chatId = msg.chat.id;
   const id = parseInt(msg.text.trim());  
   try {
       const movie = movieList.find(movie => movie.id === id);
       if (movie) {
-          const link = `${movie.name}, ${movie.year} - ${baseUrl}${movie.id}`;
+          const link = `${movie.name}, ${movie.year} - ${movie.iframe_url}`;
           await bot.telegram.sendMessage(chatId, `Фильм найден! Вот ваша ссылка: ${link}`);
       } else {
           await bot.telegram.sendMessage(chatId, 'Извините, кажется это новый фильм и мы еще не успели добавить его в раздачу.');
@@ -18,5 +17,3 @@ async function searchMovieById(bot, msg) {
       await bot.telegram.sendMessage(chatId, 'Произошла ошибка при поиске фильма.');
   }
 }
-
-export default { searchMovieById };

@@ -1,6 +1,8 @@
 import { Telegraf, Markup } from 'telegraf';
 import { token } from './config.js';
-import { searchMovieByName, searchMovieById, searchMovieByGenre } from './index.js';
+import movieBot from './index.js';
+
+const { searchMovieByName, searchMovieById, searchMovieByGenre } = movieBot;
 
 const bot = new Telegraf(token);
 
