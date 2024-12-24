@@ -5,20 +5,20 @@ const movieList = JSON.parse(rawData);
 
 export async function searchMovieByName(bot, msg) {
   const chatId = msg.chat.id;
-  const title = msg.text.trim();
+  const title = msg.text.trim().toLowerCase();
   try {
-    const moviesRuName = movieList.filter(movie => movie.name.toLowerCase().includes(title.toLowerCase()));
-    const moviesOriginName = movieList.filter(movie => movie.origin_name.toLowerCase().includes(title.toLowerCase()));
-    if (moviesRuName.length > 10) {
-      await filterAndSortMovies(bot, moviesRuName, chatId);
-    } else if (moviesOriginName.length > 10) {
-      await filterAndSortMovies(bot, moviesOriginName, chatId);
-    } else if (moviesRuName.length > 0) {
-      await filterMovies(bot, moviesRuName, chatId);
-    } else if (moviesOriginName.length > 0) {
-      await filterMovies(bot, moviesOriginName, chatId);
+    const exactMatches = movieList.filter(movie => movie.name.toLowerCase() === title || movie.origin_name.toLowerCase() === title);
+    const wholeWordMatches = movieList.filter(movie => {
+      const nameWords = movie.name.toLowerCase().split(/\s+/);
+      const originNameWords = movie.origin_name.toLowerCase().split(/\s+/);
+      return (nameWords.includes(title) || originNameWords.includes(title)) && !exactMatches.includes(movie);
+    });
+    const combinedMatches = [...exactMatches, ...wholeWordMatches];
+    
+    if (combinedMatches.length > 0) {
+      await filterMovies(bot, combinedMatches, chatId);
     } else {
-      await bot.telegram.sendMessage(chatId, 'Извините, фильм не найден, пропробуйте ввести ID с сайта Кинопоиск, так нам будет легче найти нужный фильм.');
+      await bot.telegram.sendMessage(chatId, 'Извините, фильм не найден, попробуйте ввести ID с сайта Кинопоиск, так нам будет легче найти нужный фильм.');
     }
   } catch (error) {
     console.error(error);
@@ -28,12 +28,30 @@ export async function searchMovieByName(bot, msg) {
 
 async function filterMovies(bot, movies, chatId) {
   const links = movies.map(movie => `${movie.name}, ${movie.year} - ${movie.iframe_url}`).join('\n');
-  await bot.telegram.sendMessage(chatId, `${links}`);
+  const maxMessageLength = 4096; // Максимальная длина сообщения в Telegram
+  if (links.length > maxMessageLength) {
+    const parts = splitMessage(links, maxMessageLength);
+    for (const part of parts) {
+      await bot.telegram.sendMessage(chatId, part);
+    }
+  } else {
+    await bot.telegram.sendMessage(chatId, links);
+  }
 }
 
-async function filterAndSortMovies(bot, movies, chatId) {
-  const sortedMovieList = await movies.sort((a, b) => b.kinopoisk - a.kinopoisk);
-  console.log(sortedMovieList);
-  const links = sortedMovieList.slice(0, 10).map(movie => `${movie.name}, ${movie.year} - ${movie.iframe_url}`).join('\n');
-  await bot.telegram.sendMessage(chatId, `${links}`);
+function splitMessage(message, maxLength) {
+  const parts = [];
+  let currentPart = '';
+  const lines = message.split('\n');
+  for (const line of lines) {
+    if (currentPart.length + line.length + 1 > maxLength) {
+      parts.push(currentPart);
+      currentPart = '';
+    }
+    currentPart += (currentPart.length > 0 ? '\n' : '') + line;
+  }
+  if (currentPart.length > 0) {
+    parts.push(currentPart);
+  }
+  return parts;
 }
