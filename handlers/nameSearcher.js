@@ -27,16 +27,10 @@ export async function searchMovieByName(bot, msg) {
 }
 
 async function filterMovies(bot, movies, chatId) {
-  const links = movies.map(movie => `${movie.name}, ${movie.year} - ${movie.iframe_url}`).join('\n');
-  const maxMessageLength = 4096; // Максимальная длина сообщения в Telegram
-  if (links.length > maxMessageLength) {
-    const parts = splitMessage(links, maxMessageLength);
-    for (const part of parts) {
-      await bot.telegram.sendMessage(chatId, part);
-    }
-  } else {
-    await bot.telegram.sendMessage(chatId, links);
-  }
+  const sortedMovies = movies.sort((a, b) => b.year - a.year);
+  const topMovies = sortedMovies.slice(0, 10);
+  const links = topMovies.map(movie => `${movie.name}, ${movie.year} - ${movie.iframe_url}`).join('\n');
+  await bot.telegram.sendMessage(chatId, links);
 }
 
 function splitMessage(message, maxLength) {
